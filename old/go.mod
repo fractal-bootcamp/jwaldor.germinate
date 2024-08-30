@@ -1,4 +1,4 @@
-module github.com/fractal-bootcamp/jwaldor.germinate
+module germinate
 
 go 1.23.0
 
