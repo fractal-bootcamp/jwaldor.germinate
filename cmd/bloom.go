@@ -6,6 +6,7 @@ package cmd
 import (
 	"bufio"
 	"errors"
+	"io"
 	"os"
 	"strings"
 
@@ -26,6 +27,30 @@ func runCommand(cmdName string, args ...string) error {
 	// Print the output of the command
 	fmt.Printf("Output: %s\n", out)
 	return err
+}
+
+func copyFile(srcFile, dstFile string) error {
+	// Open the source file
+	source, err := os.Open(srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer source.Close()
+
+	// Create the destination file
+	destination, err := os.Create(dstFile)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer destination.Close()
+
+	// Copy the contents from the source file to the destination file
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		return fmt.Errorf("failed to copy file contents: %w", err)
+	}
+
+	return nil
 }
 
 // bloomCmd represents the bloom command
@@ -84,16 +109,8 @@ to quickly create a Cobra application.`,
 			fmt.Printf("Error changing directory: %v\n", err)
 			return
 		}
-		// Delete index.css and App.css
-		filesToDelete := []string{"src/index.css", "src/App.css"}
-		for _, file := range filesToDelete {
-			err = os.Remove(file)
-			if err != nil {
-				fmt.Printf("Error deleting %s: %v\n", file, err)
-			} else {
-				fmt.Printf("Deleted %s\n", file)
-			}
-		}
+
+		//Tailwind install section
 		err = runCommand("npm", "install", "-D", "tailwindcss", "postcss", "autoprefixer")
 		if err != nil {
 			fmt.Printf("Error installing tailwind or dependencies: %v\n", err)
@@ -103,6 +120,16 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			fmt.Printf("Error initializing tailwind: %v\n", err)
 			return
+		}
+		// Delete index.css and App.css
+		filesToDelete := []string{"src/index.css", "src/App.css", "tailwind.config.js"}
+		for _, file := range filesToDelete {
+			err = os.Remove(file)
+			if err != nil {
+				fmt.Printf("Error deleting %s: %v\n", file, err)
+			} else {
+				fmt.Printf("Deleted %s\n", file)
+			}
 		}
 
 	},
