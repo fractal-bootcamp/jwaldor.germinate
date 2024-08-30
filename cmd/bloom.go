@@ -77,7 +77,7 @@ to quickly create a Cobra application.`,
 		}
 		// time.Sleep(3000 * time.Millisecond)
 		fmt.Println(os.ReadDir("./testbest"))
-		err = os.Chdir("./" + input)
+		err = os.Chdir("test6")
 		if err != nil {
 			fmt.Printf("Error changing directory: %v\n", err)
 			return
