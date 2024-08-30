@@ -5,7 +5,10 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
+	"io"
 	"os"
+	"strings"
 
 	"os/exec"
 
@@ -26,6 +29,30 @@ func runCommand(cmdName string, args ...string) error {
 	return err
 }
 
+func copyFile(srcFile, dstFile string) error {
+	// Open the source file
+	source, err := os.Open(srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer source.Close()
+
+	// Create the destination file
+	destination, err := os.Create(dstFile)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer destination.Close()
+
+	// Copy the contents from the source file to the destination file
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		return fmt.Errorf("failed to copy file contents: %w", err)
+	}
+
+	return nil
+}
+
 // bloomCmd represents the bloom command
 var bloomCmd = &cobra.Command{
 	Use:   "bloom",
@@ -44,18 +71,67 @@ to quickly create a Cobra application.`,
 
 		// Read the input from the user
 		input, err := reader.ReadString('\n')
+		fmt.Println(input == "testtt")
+
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			return
 		}
+		input = strings.TrimSpace(input)
+
+		if _, err := os.Stat(input); err == nil {
+			fmt.Println("Project directory already exists")
+			return
+
+		} else if errors.Is(err, os.ErrNotExist) {
+			// path/to/whatever does *not* exist
+
+		} else {
+			fmt.Println(err, "Provided directory could not be evaluated to already exist or not, aborting to be safe")
+			return
+			// Schrodinger: file may or may not exist. See err for details.
+
+			// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
+
+		}
 		// fmt.Printf("You entered: %s\n", input)
 		// cmd.InOrStdin()
 		fmt.Println("bloom called")
-		runCommand("npm", "create", "vite@latest", input, "--", "--template", "react-swc-ts")
-		// err := runCommand("npm", "install")
-		// if err != nil {
-		// 	fmt.Printf("Error: %v\n", err)
-		// }
+		err = runCommand("npm", "create", "vite@latest", input, "--", "--template", "react-swc-ts")
+		if err != nil {
+			fmt.Printf("Error creating project: %v\n", err)
+			return
+		}
+		// time.Sleep(3000 * time.Millisecond)
+		fmt.Println(os.ReadDir("./testbest"))
+		err = os.Chdir(input)
+		if err != nil {
+			fmt.Printf("Error changing directory: %v\n", err)
+			return
+		}
+
+		//Tailwind install section
+		err = runCommand("npm", "install", "-D", "tailwindcss", "postcss", "autoprefixer")
+		if err != nil {
+			fmt.Printf("Error installing tailwind or dependencies: %v\n", err)
+			return
+		}
+		err = runCommand("npx", "tailwindcss", "init", "-p")
+		if err != nil {
+			fmt.Printf("Error initializing tailwind: %v\n", err)
+			return
+		}
+		// Delete index.css and App.css
+		filesToDelete := []string{"src/index.css", "src/App.css", "tailwind.config.js"}
+		for _, file := range filesToDelete {
+			err = os.Remove(file)
+			if err != nil {
+				fmt.Printf("Error deleting %s: %v\n", file, err)
+			} else {
+				fmt.Printf("Deleted %s\n", file)
+			}
+		}
+
 	},
 }
 
