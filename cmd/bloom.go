@@ -57,20 +57,20 @@ func writeEmbeddedFileToDisk(embeddedPath string, outputPath string) error {
 	return nil
 }
 func askYesNo(question string) bool {
-    reader := bufio.NewReader(os.Stdin)
-    fmt.Print(question + " (y/n): ")
-    answer, _ := reader.ReadString('\n')
-    answer = answer[:len(answer)-1] // Remove the newline character
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(question + " (y/n): ")
+	answer, _ := reader.ReadString('\n')
+	answer = answer[:len(answer)-1] // Remove the newline character
 
-    switch answer {
-    case "y", "Y", "yes", "Yes":
-        return true
-    case "n", "N", "no", "No":
-        return false
-    default:
-        fmt.Println("Invalid response. Please answer 'y' or 'n'.")
-        return askYesNo(question) // Recursive call if the answer is invalid
-    }
+	switch answer {
+	case "y", "Y", "yes", "Yes":
+		return true
+	case "n", "N", "no", "No":
+		return false
+	default:
+		fmt.Println("Invalid response. Please answer 'y' or 'n'.")
+		return askYesNo(question) // Recursive call if the answer is invalid
+	}
 }
 
 // bloomCmd represents the bloom command
@@ -171,29 +171,51 @@ to quickly create a Cobra application.`,
 				fmt.Printf("Error cloning boilerplate: %v\n", err)
 				return
 			}
-			fmt.Println("Initializing database...")
-			err = runCommand("npx","prisma","generate")
+			err = os.Chdir("database-boilerplate")
 			if err != nil {
-				fmt.Printf("Error with npx prisma generate: %v\n", err)
+				fmt.Printf("Error changing directory: %v\n", err)
 				return
 			}
-			fmt.Println("Performing initial migration...")
-			err = runCommand("npx","prisma","migrate","reset")
+			// Delete .git and .gitignore in the database-boilerplate repo
+			filesToDelete := []string{".gitignore"}
+			for _, file := range filesToDelete {
+				err = os.Remove(file)
+				if err != nil {
+					fmt.Printf("Error deleting %s: %v\n", file, err)
+				} else {
+					fmt.Printf("Deleted %s\n", file)
+				}
+			}
+			a_file := ".git"
+			err = os.RemoveAll(a_file)
 			if err != nil {
-				fmt.Printf("Error with npx prisma generate: %v\n", err)
-				return
-		}
-		
+				fmt.Printf("Error deleting %s: %v\n", a_file, err)
+			} else {
+				fmt.Printf("Deleted %s\n", a_file)
+			}
+
+			// fmt.Println("Initializing database...")
+			// err = runCommand("npx", "prisma", "generate")
+			// if err != nil {
+			// 	fmt.Printf("Error with npx prisma generate: %v\n", err)
+			// 	return
+			// }
+			// fmt.Println("Performing initial migration...")
+			// err = runCommand("npx", "prisma", "migrate", "reset")
+			// if err != nil {
+			// 	fmt.Printf("Error with npx prisma generate: %v\n", err)
+			// 	return
+			// }
+
 		} else {
-			fmt.Println("Aborting...")
+			fmt.Println("Proceeding without database...")
 		}
 	},
-		//react router option
-		//organizing routes option
-		//auth option
-		//database option
-		//make frontend and backend folders
-	},
+	//react router option
+	//organizing routes option
+	//auth option
+	//database option
+	//make frontend and backend folders
 }
 
 func init() {
