@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"errors"
 	"os"
+	"strings"
 
 	"os/exec"
 
@@ -45,18 +46,19 @@ to quickly create a Cobra application.`,
 
 		// Read the input from the user
 		input, err := reader.ReadString('\n')
+		fmt.Println(input == "testtt")
 
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			return
 		}
+		input = strings.TrimSpace(input)
 
 		if _, err := os.Stat(input); err == nil {
 			fmt.Println("Project directory already exists")
 			return
 
 		} else if errors.Is(err, os.ErrNotExist) {
-			fmt.Println("Directory has yet to exist")
 			// path/to/whatever does *not* exist
 
 		} else {
@@ -77,7 +79,7 @@ to quickly create a Cobra application.`,
 		}
 		// time.Sleep(3000 * time.Millisecond)
 		fmt.Println(os.ReadDir("./testbest"))
-		err = os.Chdir("test6")
+		err = os.Chdir(input)
 		if err != nil {
 			fmt.Printf("Error changing directory: %v\n", err)
 			return
@@ -91,6 +93,16 @@ to quickly create a Cobra application.`,
 			} else {
 				fmt.Printf("Deleted %s\n", file)
 			}
+		}
+		err = runCommand("npm", "install", "-D", "tailwindcss", "postcss", "autoprefixer")
+		if err != nil {
+			fmt.Printf("Error installing tailwind or dependencies: %v\n", err)
+			return
+		}
+		err = runCommand("npx", "tailwindcss", "init", "-p")
+		if err != nil {
+			fmt.Printf("Error initializing tailwind: %v\n", err)
+			return
 		}
 
 	},
