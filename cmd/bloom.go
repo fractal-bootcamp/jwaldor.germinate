@@ -56,6 +56,22 @@ func writeEmbeddedFileToDisk(embeddedPath string, outputPath string) error {
 
 	return nil
 }
+func askYesNo(question string) bool {
+    reader := bufio.NewReader(os.Stdin)
+    fmt.Print(question + " (y/n): ")
+    answer, _ := reader.ReadString('\n')
+    answer = answer[:len(answer)-1] // Remove the newline character
+
+    switch answer {
+    case "y", "Y", "yes", "Yes":
+        return true
+    case "n", "N", "no", "No":
+        return false
+    default:
+        fmt.Println("Invalid response. Please answer 'y' or 'n'.")
+        return askYesNo(question) // Recursive call if the answer is invalid
+    }
+}
 
 // bloomCmd represents the bloom command
 var bloomCmd = &cobra.Command{
@@ -148,7 +164,35 @@ to quickly create a Cobra application.`,
 		} else {
 			fmt.Printf("File written successfully to %s\n", output_tailwindconf)
 		}
-
+		if askYesNo("Would you like to set up a Prisma database?") {
+			fmt.Println("Downloading boilerplate...")
+			err = runCommand("git", "clone", "git@github.com:fractal-bootcamp/database-boilerplate.git")
+			if err != nil {
+				fmt.Printf("Error cloning boilerplate: %v\n", err)
+				return
+			}
+			fmt.Println("Initializing database...")
+			err = runCommand("npx","prisma","generate")
+			if err != nil {
+				fmt.Printf("Error with npx prisma generate: %v\n", err)
+				return
+			}
+			fmt.Println("Performing initial migration...")
+			err = runCommand("npx","prisma","migrate","reset")
+			if err != nil {
+				fmt.Printf("Error with npx prisma generate: %v\n", err)
+				return
+		}
+		
+		} else {
+			fmt.Println("Aborting...")
+		}
+	},
+		//react router option
+		//organizing routes option
+		//auth option
+		//database option
+		//make frontend and backend folders
 	},
 }
 
