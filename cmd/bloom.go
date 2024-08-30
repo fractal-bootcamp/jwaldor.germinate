@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bufio"
+	"embed"
 	"errors"
 	"io"
 	"os"
@@ -16,6 +17,10 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+//go:embed assets/*
+
+var f embed.FS
 
 func runCommand(cmdName string, args ...string) error {
 	// Create a new command object
@@ -29,25 +34,24 @@ func runCommand(cmdName string, args ...string) error {
 	return err
 }
 
-func copyFile(srcFile, dstFile string) error {
-	// Open the source file
-	source, err := os.Open(srcFile)
+func writeEmbeddedFileToDisk(embeddedPath string, outputPath string) error {
+	// Open the embedded file
+	file, err := f.Open(embeddedPath)
 	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
+		return fmt.Errorf("failed to open embedded file: %w", err)
 	}
-	defer source.Close()
+	defer file.Close()
 
-	// Create the destination file
-	destination, err := os.Create(dstFile)
+	// Create the output file
+	outFile, err := os.Create(outputPath)
 	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
+		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer destination.Close()
+	defer outFile.Close()
 
-	// Copy the contents from the source file to the destination file
-	_, err = io.Copy(destination, source)
-	if err != nil {
-		return fmt.Errorf("failed to copy file contents: %w", err)
+	// Copy the content from the embedded file to the output file
+	if _, err := io.Copy(outFile, file); err != nil {
+		return fmt.Errorf("failed to copy content to output file: %w", err)
 	}
 
 	return nil
@@ -103,7 +107,6 @@ to quickly create a Cobra application.`,
 			return
 		}
 		// time.Sleep(3000 * time.Millisecond)
-		fmt.Println(os.ReadDir("./testbest"))
 		err = os.Chdir(input)
 		if err != nil {
 			fmt.Printf("Error changing directory: %v\n", err)
@@ -130,6 +133,20 @@ to quickly create a Cobra application.`,
 			} else {
 				fmt.Printf("Deleted %s\n", file)
 			}
+		}
+		indexCss := "assets/index.css" // Path in the embedded filesystem
+		tailwindConfig := "assets/tailwind.config.js"
+		output_index := "src/index.css"
+		if err := writeEmbeddedFileToDisk(indexCss, output_index); err != nil {
+			fmt.Printf("error: %v\n", err)
+		} else {
+			fmt.Printf("File written successfully to %s\n", output_index)
+		}
+		output_tailwindconf := "tailwind.config.js"
+		if err := writeEmbeddedFileToDisk(tailwindConfig, output_tailwindconf); err != nil {
+			fmt.Printf("error: %v\n", err)
+		} else {
+			fmt.Printf("File written successfully to %s\n", output_tailwindconf)
 		}
 
 	},
